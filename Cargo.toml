@@ -1,0 +1,9 @@
+[package]
+name = "lodestone-linestring"
+version = "0.1.0"
+authors = ["dremonkey <a.deutmeyer@gmail.com>"]
+keywords = ["geo", "geojson", "linestring", "lodestone", "turf", "turfjs"]
+
+[dependencies]
+geojson = "0.1.0"
+rustc-serialize = "0.3.0"
