@@ -15,7 +15,7 @@ use geojson::{Feature, GeoJson, Geometry, Value};
 pub extern fn linestring(
   coordinates: Vec<Vec<f64>>) -> GeoJson {
 
-  assert!(coordinates.len() >= 2);
+  assert!(coordinates.len() >= 2, "LineString must have two or more coordinates");
 
   let geometry = Geometry::new(Value::LineString(coordinates));
   let properties = json::Object::new();
@@ -29,15 +29,15 @@ pub extern fn linestring(
   })
 }
 
-#[cfg(Test)]
-mod test {
+#[cfg(test)]
+mod tests {
   use rustc_serialize::json::{self, ToJson};
   use super::linestring;
 
   #[test]
   fn test_valid_coordinates() {
     
-    let expected_json = "{\"geometry\":{\"coordinates\":[[-1,0,1.0],[-2.0,2.0]],\"type\":\"LineString\"},\"properties\":{},\"type\":\"Feature\"}";
+    let expected_json = "{\"geometry\":{\"coordinates\":[[-1.0,1.0],[-2.0,2.0]],\"type\":\"LineString\"},\"properties\":{},\"type\":\"Feature\"}";
 
     let coords = vec![vec![-1.0, 1.0], vec![-2.0, 2.0]];
     let geojson = linestring(coords);
@@ -47,7 +47,7 @@ mod test {
   }
 
   #[test]
-  #[should_panic]
+  #[should_panic(expected = "LineString must have two or more coordinates")]
   fn test_invalid_coordinates() {
     let coords = vec![vec![1.0, 1.0]];
     linestring(coords);
