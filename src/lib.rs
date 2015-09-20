@@ -15,6 +15,7 @@ extern crate rustc_serialize;
 use rustc_serialize::json::{self, ToJson};
 use geojson::{Error, Feature, Geometry, LineStringType, Value, FromObject};
 
+#[derive(Debug, Clone)]
 pub struct FeatureLineString {
   feature: Feature
 }
@@ -38,11 +39,11 @@ impl FeatureLineString {
     }
   }
 
-  pub fn coordinates(&self) -> &LineStringType {
+  pub fn coordinates(&self) -> LineStringType {
     type Err = Error;
     
     match self.feature.geometry.value {
-      Value::LineString(ref coords) => coords,
+      Value::LineString(ref coords) => coords.clone(),
       _ => unreachable!("Type other than Value::LineString should not be possible"),
     }
   }
@@ -87,6 +88,30 @@ impl ToString for FeatureLineString {
   }
 }
 
+impl PartialEq for FeatureLineString {
+  fn eq(&self, other: &Self) -> bool {
+    let coords1 = self.coordinates();
+    let coords2 = other.coordinates();
+    let mut is_equal = coords1.len() == coords2.len();
+    
+    if is_equal {
+      for (i, coord1) in coords1.iter().enumerate() {
+        let coord2 = coords2[i].clone();
+        
+        // 1.0e-8 is ~1.1mm precision
+        is_equal = (coord1[0] - coord2[0]).abs() < 1.0e-8 &&
+          (coord1[1] - coord2[1]).abs() < 1.0e-8;
+
+        if !is_equal {
+          break;
+        }
+      }
+    }
+
+    is_equal
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use rustc_serialize::json::{self, ToJson};
@@ -109,5 +134,14 @@ mod tests {
   fn test_invalid_coordinates() {
     let coords = vec![vec![1.0, 1.0]];
     FeatureLineString::new(coords);
+  }
+
+  #[test]
+  fn test_eq() {
+    let coords = vec![vec![-1.0, 1.0], vec![-2.0, 2.0]];
+    let line1 = FeatureLineString::new(coords.clone());
+    let line2 = FeatureLineString::new(coords.clone());
+
+    assert_eq!(line1, line2);
   }
 }
